@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from databases import DatabaseURL
 
 API_V1_STR = "/api"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 * 4 # one month
 
 load_dotenv(".env")
 
@@ -14,12 +15,16 @@ MONGODB_URL = os.getenv("MONGODB_URL", "")  # deploying without docker-compose
 if not MONGODB_URL:
     MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
     MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
-    MONGO_USER = os.getenv("MONGO_USER", "admin")
-    MONGO_PASS = os.getenv("MONGO_PASSWORD", "admin")
+    MONGO_USER = os.getenv("MONGO_USER", "")
+    MONGO_PASS = os.getenv("MONGO_PASSWORD", "")
     MONGO_DB = os.getenv("MONGO_DB", "aligner")
 
     MONGODB_URL = DatabaseURL(
-        f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}"
+        f"mongodb://{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}"
     )
 else:
     MONGODB_URL = DatabaseURL(MONGODB_URL)
+    MONGO_DB = os.getenv("MONGO_DB", "aligner")
+
+db_name = MONGO_DB
+users_collection_name = "users"
