@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from databases import DatabaseURL
 
+API_V1_STR = "/api"
+
 load_dotenv(".env")
 
 MAX_CONNECTIONS_COUNT = int(os.getenv("MAX_CONNECTIONS_COUNT", 10))
@@ -21,5 +23,3 @@ if not MONGODB_URL:
     )
 else:
     MONGODB_URL = DatabaseURL(MONGODB_URL)
-
-print(MONGODB_URL)
