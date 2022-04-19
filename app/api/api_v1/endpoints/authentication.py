@@ -5,15 +5,16 @@ from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 from ....database.mongo import AsyncIOMotorClient, get_database
 from ....models.user import User, UserInLogin, UserInCreate, UserInResponse, UserInDB
 from ....core.security import get_password_hash
-from ....crud.user import create_user
+from ....crud.user import create_user, get_user_by_username
+from ....crud.shortcuts import check_free_username
 
 router = APIRouter()
 
 @router.post("/users/login", response_model=UserInResponse, tags=["authentication"])
 async def login(
-    user: UserInLogin = Body(..., embed=True)
+    user: UserInLogin = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
 ):
-    db_user = UserInDB(username='admin',salt='salt', hashed_password=get_password_hash('saltadmin'), createdAt=None, updatedAt=None)
+    db_user = await get_user_by_username(db, user.username)
     if not db_user or not db_user.check_password(user.password):
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
@@ -31,6 +32,7 @@ async def login(
 async def register(
         user: UserInCreate = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
 ):
+    await check_free_username(db, user.username)
     async with await db.start_session() as s:
         async with s.start_transaction():
             db_user = await create_user(db, user)

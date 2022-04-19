@@ -22,7 +22,7 @@ class User(UserBase):
 
 
 class UserInResponse(RWModel):
-    user: User
+    data: User
 
 
 class UserInLogin(RWModel):
