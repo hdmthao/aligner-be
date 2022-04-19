@@ -2,9 +2,9 @@ from fastapi import APIRouter, Body, Depends
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
+from ....core.jwt import create_access_token
 from ....database.mongo import AsyncIOMotorClient, get_database
-from ....models.user import User, UserInLogin, UserInCreate, UserInResponse, UserInDB
-from ....core.security import get_password_hash
+from ....models.user import User, UserInLogin, UserInCreate, UserInResponse
 from ....crud.user import create_user, get_user_by_username
 from ....crud.shortcuts import check_free_username
 
@@ -20,8 +20,9 @@ async def login(
             status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
         )
 
-    token = "user_token"
-    return UserInResponse(user=User(**db_user.dict(), token=token))
+    token = create_access_token(data = { "username": db_user.username })
+
+    return UserInResponse(data=User(**db_user.dict(), token=token))
 
 @router.post(
     "/users",
@@ -36,6 +37,6 @@ async def register(
     async with await db.start_session() as s:
         async with s.start_transaction():
             db_user = await create_user(db, user)
-            token = "user_token"
+            token = create_access_token(data = { "username": db_user.username })
 
-            return UserInResponse(user=User(**db_user.dict(), token=token))
+            return UserInResponse(data=User(**db_user.dict(), token=token))

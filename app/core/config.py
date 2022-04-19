@@ -28,3 +28,6 @@ else:
 
 db_name = MONGO_DB
 users_collection_name = "users"
+
+
+SECRET_KEY = os.getenv("SECRET_KEY", "local_secret_key")
