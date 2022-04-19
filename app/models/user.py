@@ -1,4 +1,3 @@
-from .dbmodel import DBModelMixin
 from .rwmodel import RWModel
 from ..core.security import generate_salt, get_password_hash, verify_password
 
@@ -7,7 +6,7 @@ class UserBase(RWModel):
     username: str
 
 
-class UserInDB(DBModelMixin, UserBase):
+class UserInDB(UserBase):
     salt: str = ""
     hashed_password: str = ""
 
