@@ -4,8 +4,8 @@ from ..database.mongo import AsyncIOMotorClient
 from ..core.config import db_name, accounts_collection_name
 from ..models.account import AccountInDB, AccountInDB, AccountInCreate
 
-async def get_account(conn: AsyncIOMotorClient, accountname: str) -> Union[AccountInDB, None]:
-    row = await conn[db_name][accounts_collection_name].find_one({"accountname": accountname})
+async def get_account(conn: AsyncIOMotorClient, username: str) -> Union[AccountInDB, None]:
+    row = await conn[db_name][accounts_collection_name].find_one({"username": username})
     if row:
         return AccountInDB(**row)
 
