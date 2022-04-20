@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Body, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
 from ....core.jwt import create_access_token
 from ....database.mongo import AsyncIOMotorClient, get_database
-from ....models.account import Account, AccountInLogin, AccountInCreate, AccountInResponse
+from ....models.account import Account, AccountInCreate, AccountInResponse
+from ....models.token import TokenInResponse
 from ....crud.account import create_account, get_account
 from ....crud.shortcuts import check_free_username
 
@@ -12,7 +14,7 @@ router = APIRouter()
 
 @router.post("/accounts/login", response_model=AccountInResponse, tags=["authentication"])
 async def login(
-    account: AccountInLogin = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
+    account: OAuth2PasswordRequestForm = Depends(), db: AsyncIOMotorClient = Depends(get_database)
 ):
     db_account = await get_account(db, account.username)
     if not db_account or not db_account.check_password(account.password):
@@ -20,7 +22,7 @@ async def login(
             status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
         )
 
-    token = create_access_token(data = { "accountname": db_account.username })
+    token = create_access_token(data = { "username": db_account.username })
 
     return AccountInResponse(data=Account(**db_account.dict(), token=token))
 
@@ -40,3 +42,17 @@ async def register(
             token = create_access_token(data = { "username": db_account.username })
 
             return AccountInResponse(data=Account(**db_account.dict(), token=token))
+
+@router.post("/token", response_model=TokenInResponse, tags=["authentication"])
+async def login_for_access_token(
+    account: OAuth2PasswordRequestForm = Depends(), db: AsyncIOMotorClient = Depends(get_database)
+):
+    db_account = await get_account(db, account.username)
+    if not db_account or not db_account.check_password(account.password):
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
+        )
+
+    token = create_access_token(data = { "username": db_account.username })
+
+    return TokenInResponse(access_token=token, token_type="bearer")

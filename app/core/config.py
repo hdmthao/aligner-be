@@ -5,7 +5,6 @@ from databases import DatabaseURL
 
 API_V1_STR = "/api"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 * 4 # one month
-JWT_TOKEN_PREFIX = "Token"
 
 load_dotenv(".env")
 

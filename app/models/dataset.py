@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 from .rwmodel import RWModel
 from .user import User
@@ -19,6 +19,7 @@ class DatasetBase(RWModel):
 
 class Dataset(DatasetBase):
     slug: str
+    sentence_pairs_count: int
 
 
 class DatasetInDB(Dataset):
@@ -31,3 +32,7 @@ class DatasetInCreate(DatasetBase):
 
 class DatasetInResponse(RWModel):
     data: Dataset
+
+class ManyDatasetsInResponse(RWModel):
+    data: List[Dataset]
+    datasets_count: int

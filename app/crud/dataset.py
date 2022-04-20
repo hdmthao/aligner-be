@@ -1,14 +1,32 @@
 from slugify import slugify
 from typing import Optional
+from starlette.exceptions import HTTPException
+from starlette.status import HTTP_403_FORBIDDEN
 
 from ..database.mongo import AsyncIOMotorClient
 from ..core.config import db_name, datasets_collection_name
+from .user import get_user_for_account
 from ..models.dataset import DatasetInDB, DatasetInCreate
+from ..models.user import User
 
-async def get_dataset_by_slug(conn: AsyncIOMotorClient, slug: str) -> Optional[DatasetInDB]:
+
+async def get_sentence_pairs_count_for_dataset(conn: AsyncIOMotorClient, slug: str) -> int:
+    return 0
+
+async def get_dataset_by_slug(conn: AsyncIOMotorClient, slug: str, user: Optional[User] = None) -> Optional[DatasetInDB]:
     row = await conn[db_name][datasets_collection_name].find_one({"slug": slug})
-    if row:
-        return DatasetInDB(**row)
+    if not row:
+        return None
+
+    if user and row["author_id"] != user.username:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN,
+            detail=f"Dataset with slug '{slug}' can not access by user '{user.username}'"
+        )
+
+    row["author"] = await get_user_for_account(conn, row["author_id"])
+    row["sentence_pairs_count"] = await get_sentence_pairs_count_for_dataset(conn, slug)
+    return DatasetInDB(**row)
 
 
 async def create_dataset_by_slug(conn: AsyncIOMotorClient, dataset: DatasetInCreate, username: str) -> DatasetInDB:
@@ -19,4 +37,6 @@ async def create_dataset_by_slug(conn: AsyncIOMotorClient, dataset: DatasetInCre
 
     await conn[db_name][datasets_collection_name].insert_one(dataset_doc)
 
-    return DatasetInDB(**dataset_doc)
+    author = await get_user_for_account(conn, username)
+
+    return DatasetInDB(**dataset_doc, author=author, sentence_pairs_count=0)
