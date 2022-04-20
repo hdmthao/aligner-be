@@ -5,6 +5,7 @@ from databases import DatabaseURL
 
 API_V1_STR = "/api"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 * 4 # one month
+JWT_TOKEN_PREFIX = "Token"
 
 load_dotenv(".env")
 
@@ -27,7 +28,8 @@ else:
     MONGO_DB = os.getenv("MONGO_DB", "aligner")
 
 db_name = MONGO_DB
-users_collection_name = "users"
+accounts_collection_name = "accounts"
+datasets_collection_name = 'datasets'
 
 
 SECRET_KEY = os.getenv("SECRET_KEY", "local_secret_key")
