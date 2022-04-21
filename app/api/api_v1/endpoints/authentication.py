@@ -5,7 +5,7 @@ from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
 from ....core.jwt import create_access_token
 from ....database.mongo import AsyncIOMotorClient, get_database
-from ....models.account import Account, AccountInCreate, AccountInResponse
+from ....models.account import Account, AccountInLogin, AccountInCreate, AccountInResponse
 from ....models.token import TokenInResponse
 from ....crud.account import create_account, get_account
 from ....crud.shortcuts import check_free_username
@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.post("/accounts/login", response_model=AccountInResponse, tags=["authentication"])
 async def login(
-    account: OAuth2PasswordRequestForm = Depends(), db: AsyncIOMotorClient = Depends(get_database)
+    account: AccountInLogin = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
 ):
     db_account = await get_account(db, account.username)
     if not db_account or not db_account.check_password(account.password):
