@@ -6,6 +6,14 @@ from .user import User
 from pydantic import Field
 
 
+class DatasetFilterParams(RWModel):
+    code: str = ""
+    source_lang: str = ""
+    target_lang: str = ""
+    limit: int = 20
+    offset: int = 0
+
+
 class DatasetBase(RWModel):
     code: str = Field(
         ...,
@@ -19,11 +27,12 @@ class DatasetBase(RWModel):
 
 class Dataset(DatasetBase):
     slug: str
+    author: User
     sentence_pairs_count: int
 
 
 class DatasetInDB(Dataset):
-    author: User
+    pass
 
 
 class DatasetInCreate(DatasetBase):
