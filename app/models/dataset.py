@@ -25,14 +25,19 @@ class DatasetBase(RWModel):
     target_lang: Literal['EN', 'VI', 'FR']
 
 
+class DatasetMetadata(DatasetBase):
+    pass
+
+
 class Dataset(DatasetBase):
     slug: str
     author: User
     sentence_pairs_count: int
 
 
-class DatasetInDB(Dataset):
-    pass
+class DatasetInDB(DatasetBase):
+    slug: str
+    author_id: str
 
 
 class DatasetInCreate(DatasetBase):

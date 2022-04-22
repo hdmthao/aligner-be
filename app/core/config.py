@@ -32,6 +32,7 @@ else:
 db_name = MONGO_DB
 accounts_collection_name = "accounts"
 datasets_collection_name = 'datasets'
+sentence_pairs_collection_name = "sentence_pairs"
 
 
 SECRET_KEY = os.getenv("SECRET_KEY", "local_secret_key")
