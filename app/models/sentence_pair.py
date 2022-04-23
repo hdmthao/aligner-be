@@ -1,10 +1,17 @@
 from typing import List
 from pydantic import Field
 from uuid import UUID, uuid4
+from enum import Enum
 
 from .rwmodel import RWModel
 from .dataset import Dataset
 
+
+class MatchStatus(str, Enum):
+    unmatched = 'unmatched'
+    matching = 'matching'
+    partially_matched = 'partially_matched'
+    matched = 'matched'
 
 class SentencePairFilterParams(RWModel):
     limit: int = 20
@@ -16,6 +23,7 @@ class SentencePairBase(RWModel):
     tgt_sent: str
     src_tokenize: List[str]
     tgt_tokenize: List[str]
+    status: MatchStatus = MatchStatus.unmatched
 
 
 class SentencePair(SentencePairBase):
