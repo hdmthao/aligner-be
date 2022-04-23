@@ -19,7 +19,7 @@ class SentencePairCRUD(AppCRUD):
         src_sent = sentence_pair_params.src_sent.strip()
         tgt_sent = sentence_pair_params.tgt_sent.strip()
         src_tokenize = src_sent.split()
-        tgt_tokenize = src_sent.split()
+        tgt_tokenize = tgt_sent.split()
         sentence_pair_doc = SentencePairInDB(
             dataset_slug=dataset.slug,
             src_tokenize=src_tokenize, tgt_tokenize=tgt_tokenize,
