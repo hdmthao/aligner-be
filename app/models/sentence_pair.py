@@ -6,6 +6,11 @@ from .rwmodel import RWModel
 from .dataset import Dataset
 
 
+class SentencePairFilterParams(RWModel):
+    limit: int = 20
+    offset: int = 0
+
+
 class SentencePairBase(RWModel):
     src_sent: str
     tgt_sent: str
@@ -27,8 +32,12 @@ class SentencePairInCreate(RWModel):
     src_sent: str
     tgt_sent: str
 
-class SentencePairInResponse(RWModel):
+class SentencePairDetailInResponse(RWModel):
     data: SentencePair
+
+
+class SentencePairItemInResponse(SentencePairInDB):
+    pass
 
 
 class ManySentencePairsInResponse(RWModel):

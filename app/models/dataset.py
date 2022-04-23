@@ -11,8 +11,6 @@ class DatasetFilterParams(RWModel):
     code: str = ""
     src_lang: str = ""
     tgt_lang: str = ""
-    limit: int = 20
-    offset: int = 0
 
 
 class DatasetBase(RWModel):
@@ -41,8 +39,12 @@ class DatasetInCreate(DatasetBase):
     pass
 
 
-class DatasetInResponse(RWModel):
+class DatasetDetailInResponse(RWModel):
     data: Dataset
+
+
+class DatasetItemInResponse(DatasetInDB):
+    pass
 
 class ManyDatasetsInResponse(RWModel):
     data: List[Dataset]

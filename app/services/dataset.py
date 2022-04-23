@@ -1,11 +1,13 @@
 from slugify import slugify
-from typing import List, Optional
+from typing import Optional
 from starlette.exceptions import HTTPException
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND, HTTP_403_FORBIDDEN, HTTP_422_UNPROCESSABLE_ENTITY
 from uuid import UUID
+from fastapi_pagination.bases import AbstractPage
+from fastapi_pagination.ext.motor import paginate
 
 from .base import AppService, AppCRUD
-from ..core.config import db_name, datasets_collection_name
+from ..core.config import db_name, datasets_collection_name, sentence_pairs_collection_name
 from ..crud.user import get_user_for_account
 from ..models.dataset import Dataset, DatasetFilterParams, DatasetInCreate, DatasetInDB
 
@@ -48,25 +50,14 @@ class DatasetService(AppService):
 
         return Dataset(**db_dataset.dict(), author=author, sentence_pairs_count=sentence_pairs_count)
 
-    async def get_datasets_of_current_user_with_filters(self, filters: DatasetFilterParams) -> List[Dataset]:
+    async def get_datasets_of_current_user_with_filters(self, filters: DatasetFilterParams) -> AbstractPage:
         if not self.current_user:
-            return []
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail=f"Not authorized to access datasets"
+            )
 
-        db_datasets = await DatasetCRUD(self.db, self.current_user).get_datasets_with_filters(filters)
-
-        current_user_datasets: List[Dataset] = []
-
-        for db_dataset in db_datasets:
-            if db_dataset.author_id != self.current_user.id:
-                continue
-
-            author = await get_user_for_account(self.db, db_dataset.author_id)
-            sentence_pairs_count = await DatasetCRUD(self.db, self.current_user).get_sentence_pairs_count_for_dataset(db_dataset.slug)
-            dataset = Dataset(**db_dataset.dict(), author=author, sentence_pairs_count=sentence_pairs_count)
-
-            current_user_datasets.append(dataset)
-
-        return current_user_datasets
+        return await DatasetCRUD(self.db, self.current_user).get_datasets_with_paging(filters)
 
 class DatasetCRUD(AppCRUD):
     async def new_dataset(self, dataset_params: DatasetInCreate, author_id: UUID) -> DatasetInDB:
@@ -84,8 +75,7 @@ class DatasetCRUD(AppCRUD):
 
         return DatasetInDB(**row)
 
-    async def get_datasets_with_filters(self, filters: DatasetFilterParams) -> List[DatasetInDB]:
-        datasets: List[DatasetInDB] = []
+    async def get_datasets_with_paging(self, filters: DatasetFilterParams) -> AbstractPage:
         base_query = {}
 
         if filters.code:
@@ -97,12 +87,8 @@ class DatasetCRUD(AppCRUD):
         if filters.tgt_lang:
             base_query["tgt_lang"] = filters.tgt_lang
 
-        rows = self.db[db_name][datasets_collection_name].find(base_query, limit=filters.limit, skip=filters.offset)
-
-        async for row in rows:
-            datasets.append(DatasetInDB(**row))
-
-        return datasets
+        return await paginate(self.db[db_name][datasets_collection_name], query_filter=base_query)
 
     async def get_sentence_pairs_count_for_dataset(self, dataset_slug: str) -> int:
-        return len(dataset_slug)
+        query = {"dataset_slug": dataset_slug}
+        return await self.db[db_name][sentence_pairs_collection_name].count_documents(query)

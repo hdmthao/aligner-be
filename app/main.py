@@ -1,6 +1,7 @@
 import logging.config
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 
 from .api.api_v1.api import router as api_router
 from .core.config import API_V1_STR, ALLOWED_HOSTS
@@ -26,3 +27,5 @@ app.add_event_handler("startup", connect_to_mongo)
 app.add_event_handler("shutdown", close_mongo_connection)
 
 app.include_router(api_router, prefix=API_V1_STR)
+
+add_pagination(app)

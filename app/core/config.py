@@ -18,12 +18,15 @@ MONGODB_URL = os.getenv("MONGODB_URL", "")  # deploying without docker-compose
 if not MONGODB_URL:
     MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
     MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
+    MONGO_HOST_REPLICA = os.getenv("MONGO_HOST", "localhost")
+    MONGO_PORT_REPLICA = int(os.getenv("MONGO_PORT", 27018))
+    MONGO_HOST_REPLICA_2 = os.getenv("MONGO_HOST", "localhost")
+    MONGO_PORT_REPLICA_2 = int(os.getenv("MONGO_PORT", 27019))
     MONGO_USER = os.getenv("MONGO_USER", "")
     MONGO_PASS = os.getenv("MONGO_PASSWORD", "")
     MONGO_DB = os.getenv("MONGO_DB", "aligner")
-
     MONGODB_URL = DatabaseURL(
-        f"mongodb://{MONGO_HOST}:{MONGO_PORT}/{MONGO_DB}"
+        f"mongodb://{MONGO_HOST}:{MONGO_PORT},{MONGO_HOST_REPLICA}:{MONGO_PORT_REPLICA},{MONGO_HOST_REPLICA_2}:{MONGO_PORT_REPLICA_2}/{MONGO_DB}?replicaSet=rs&retryWrites=false&uuidRepresentation=standard"
     )
 else:
     MONGODB_URL = DatabaseURL(MONGODB_URL)
