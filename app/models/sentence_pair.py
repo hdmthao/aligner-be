@@ -7,11 +7,17 @@ from .rwmodel import RWModel
 from .dataset import Dataset
 
 
-class MatchStatus(str, Enum):
-    unmatched = 'unmatched'
-    matching = 'matching'
-    partially_matched = 'partially_matched'
-    matched = 'matched'
+class AlignmentStatus(str, Enum):
+    unaligned = 'unaligned'
+    aligning = 'aligning'
+    partially_aligned = 'partially_aligned'
+    aligned = 'aligned'
+
+
+class AlignmentPair(RWModel):
+    src: int
+    tgt: int
+
 
 class SentencePairFilterParams(RWModel):
     limit: int = 20
@@ -23,7 +29,8 @@ class SentencePairBase(RWModel):
     tgt_sent: str
     src_tokenize: List[str]
     tgt_tokenize: List[str]
-    status: MatchStatus = MatchStatus.unmatched
+    status: AlignmentStatus = AlignmentStatus.unaligned
+    alignments: List[AlignmentPair] = []
 
 
 class SentencePair(SentencePairBase):
@@ -46,8 +53,3 @@ class SentencePairDetailInResponse(RWModel):
 
 class SentencePairItemInResponse(SentencePairInDB):
     pass
-
-
-class ManySentencePairsInResponse(RWModel):
-    data: List[SentencePair]
-    sentence_pairs_count: int

@@ -7,8 +7,8 @@ from fastapi_pagination.bases import AbstractPage
 from fastapi_pagination.ext.motor import paginate
 
 from .base import AppService, AppCRUD
+from .user import UserService
 from ..core.config import db_name, datasets_collection_name, sentence_pairs_collection_name
-from ..crud.user import get_user_for_account
 from ..models.dataset import Dataset, DatasetFilterParams, DatasetInCreate, DatasetInDB
 
 class DatasetService(AppService):
@@ -27,7 +27,7 @@ class DatasetService(AppService):
             )
 
         db_dataset = await DatasetCRUD(self.db, self.current_user).new_dataset(dataset_params, author_id=self.current_user.id)
-        author = await get_user_for_account(self.db, db_dataset.author_id)
+        author = await UserService(self.db).get_user_for_account(db_dataset.author_id)
         return Dataset(**db_dataset.dict(), author=author, sentence_pairs_count=0)
 
 
@@ -45,7 +45,7 @@ class DatasetService(AppService):
                 detail=f"Dataset with slug '{slug}' can not access by user '{self.current_user.username}'"
             )
 
-        author = await get_user_for_account(self.db, db_dataset.author_id)
+        author = await UserService(self.db).get_user_for_account(db_dataset.author_id)
         sentence_pairs_count = await DatasetCRUD(self.db, self.current_user).get_sentence_pairs_count_for_dataset(db_dataset.slug)
 
         return Dataset(**db_dataset.dict(), author=author, sentence_pairs_count=sentence_pairs_count)

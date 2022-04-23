@@ -1,4 +1,4 @@
-from typing import Literal, Optional, List
+from typing import Literal, Optional
 from uuid import UUID
 
 from .rwmodel import RWModel
@@ -45,7 +45,3 @@ class DatasetDetailInResponse(RWModel):
 
 class DatasetItemInResponse(DatasetInDB):
     pass
-
-class ManyDatasetsInResponse(RWModel):
-    data: List[Dataset]
-    datasets_count: int

@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Path, Depends, Body
-from uuid import UUID
+from fastapi import APIRouter, Path, Depends, Body, File, UploadFile
 from fastapi_pagination import Page 
 from starlette.status import HTTP_201_CREATED
+from uuid import UUID
 
 from ....database.mongo import AsyncIOMotorClient, get_database
-from ....models.sentence_pair import SentencePairInCreate, SentencePairItemInResponse, SentencePairDetailInResponse
-from ....models.user import User
 from ....core.jwt import get_current_user
 from ....core.utils import create_aliased_response
+from ....models.user import User
+from ....models.sentence_pair import SentencePairInCreate, SentencePairItemInResponse, SentencePairDetailInResponse
 from ....services.sentence_pair import SentencePairService
 
 router = APIRouter(
@@ -68,4 +68,3 @@ async def get_sentence_pair_from_dataset(
 #     user: User = Depends(get_current_user()),
 #     db: AsyncIOMotorClient = Depends(get_database)
 # ):
-#     return {}

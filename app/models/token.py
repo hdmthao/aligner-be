@@ -9,5 +9,5 @@ class Token(RWModel):
     access_token: str
     token_type: str
 
-class TokenInResponse(Token):
-    pass
+class TokenInResponse(RWModel):
+    data: Token

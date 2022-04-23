@@ -1,30 +1,22 @@
 from fastapi import APIRouter, Body, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from starlette.exceptions import HTTPException
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
+from starlette.status import HTTP_201_CREATED
 
-from ....core.jwt import create_access_token
 from ....database.mongo import AsyncIOMotorClient, get_database
-from ....models.account import Account, AccountInLogin, AccountInCreate, AccountInResponse
-from ....models.token import TokenPayload, TokenInResponse
-from ....crud.account import create_account, get_account_by_username
-from ....crud.shortcuts import check_free_username
+from ....core.utils import create_aliased_response
+from ....models.token import TokenInResponse, Token
+from ....models.account import AccountInLogin, AccountInCreate, AccountInResponse
+from ....services.account import AccountService
 
 router = APIRouter()
 
 @router.post("/accounts/login", response_model=AccountInResponse, tags=["authentication"])
 async def login(
-    account: AccountInLogin = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
+    account_params: AccountInLogin = Body(..., embed=True, alias="account"), db: AsyncIOMotorClient = Depends(get_database)
 ):
-    db_account = await get_account_by_username(db, account.username)
-    if not db_account or not db_account.check_password(account.password):
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
-        )
+    account = await AccountService(db).login_and_generate_new_token(account_params)
 
-    token = create_access_token(data = TokenPayload(**db_account.dict()))
-
-    return AccountInResponse(data=Account(**db_account.dict(), token=token))
+    return create_aliased_response(AccountInResponse(data=account))
 
 @router.post(
     "/accounts",
@@ -33,26 +25,20 @@ async def login(
     status_code=HTTP_201_CREATED
 )
 async def register(
-        account: AccountInCreate = Body(..., embed=True), db: AsyncIOMotorClient = Depends(get_database)
+        account_params: AccountInCreate = Body(..., embed=True, alias="account"), db: AsyncIOMotorClient = Depends(get_database)
 ):
-    await check_free_username(db, account.username)
+    await AccountService(db).check_free_username(account_params.username)
+
     async with await db.start_session() as s:
         async with s.start_transaction():
-            db_account = await create_account(db, account)
-            token = create_access_token(data = TokenPayload(**db_account.dict()))
+            account = await AccountService(db).create_account_and_generate_token(account_params)
 
-            return AccountInResponse(data=Account(**db_account.dict(), token=token))
+            return create_aliased_response(AccountInResponse(data=account))
 
 @router.post("/token", response_model=TokenInResponse, tags=["authentication"])
-async def login_for_access_token(
-    account: OAuth2PasswordRequestForm = Depends(), db: AsyncIOMotorClient = Depends(get_database)
+async def generate_access_token(
+    account_params: OAuth2PasswordRequestForm = Depends(), db: AsyncIOMotorClient = Depends(get_database)
 ):
-    db_account = await get_account_by_username(db, account.username)
-    if not db_account or not db_account.check_password(account.password):
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST, detail="Incorrect username or password"
-        )
+    account = await AccountService(db).login_and_generate_new_token(AccountInLogin(username=account_params.username, password=account_params.password))
 
-    token = create_access_token(data = TokenPayload(**db_account.dict()))
-
-    return TokenInResponse(access_token=token, token_type="bearer")
+    return create_aliased_response(TokenInResponse(data=Token(access_token=account.token, token_type="bearer")))
