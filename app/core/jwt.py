@@ -30,7 +30,7 @@ async def _get_current_user(
             status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
         )
 
-    db_account = await get_account(db, token_data.username)
+    db_account = await get_account(db, token_data.id)
     if not db_account:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail="Account not found")
 
@@ -42,8 +42,9 @@ def get_current_user():
     return _get_current_user
 
 
-def create_access_token(*, data: dict):
-    to_encode = data.copy()
+def create_access_token(*, data: TokenPayload):
+    to_encode = data.dict().copy()
+    to_encode.update({"id": str(to_encode["id"])})
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire, "sub": access_token_jwt_subject})
     encoded_jwt = jwt.encode(to_encode, str(SECRET_KEY), algorithm=ALGORITHM)

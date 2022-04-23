@@ -1,3 +1,6 @@
+from pydantic import Field
+from uuid import UUID, uuid4
+
 from .rwmodel import RWModel
 from ..core.security import generate_salt, get_password_hash, verify_password
 
@@ -7,6 +10,7 @@ class AccountBase(RWModel):
 
 
 class AccountInDB(AccountBase):
+    id: UUID = Field(default_factory=uuid4)
     salt: str = ""
     hashed_password: str = ""
 
@@ -18,6 +22,7 @@ class AccountInDB(AccountBase):
         self.hashed_password = get_password_hash(self.salt + password)
 
 class Account(AccountBase):
+    id: UUID
     token: str
 
 

@@ -1,4 +1,5 @@
 from typing import Literal, Optional, List
+from uuid import UUID
 
 from .rwmodel import RWModel
 from .user import User
@@ -8,8 +9,8 @@ from pydantic import Field
 
 class DatasetFilterParams(RWModel):
     code: str = ""
-    source_lang: str = ""
-    target_lang: str = ""
+    src_lang: str = ""
+    tgt_lang: str = ""
     limit: int = 20
     offset: int = 0
 
@@ -21,12 +22,8 @@ class DatasetBase(RWModel):
         min_length=1,
         max_length=255)
     description: Optional[str] = Field(None, max_length=255)
-    source_lang: Literal['EN', 'VI', 'FR']
-    target_lang: Literal['EN', 'VI', 'FR']
-
-
-class DatasetMetadata(DatasetBase):
-    pass
+    src_lang: Literal['EN', 'VI', 'FR']
+    tgt_lang: Literal['EN', 'VI', 'FR']
 
 
 class Dataset(DatasetBase):
@@ -37,7 +34,7 @@ class Dataset(DatasetBase):
 
 class DatasetInDB(DatasetBase):
     slug: str
-    author_id: str
+    author_id: UUID
 
 
 class DatasetInCreate(DatasetBase):

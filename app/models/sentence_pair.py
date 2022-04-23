@@ -1,24 +1,31 @@
 from typing import List
-from uuid import UUID
+from pydantic import Field
+from uuid import UUID, uuid4
 
 from .rwmodel import RWModel
-from .dataset import DatasetMetadata
+from .dataset import Dataset
 
 
 class SentencePairBase(RWModel):
-    src: List[str]
-    tgt: List[str]
+    src_sent: str
+    tgt_sent: str
+    src_tokenize: List[str]
+    tgt_tokenize: List[str]
 
 
 class SentencePair(SentencePairBase):
-    slug: UUID
-    dataset: DatasetMetadata
+    id: UUID
+    dataset: Dataset
 
 
 class SentencePairInDB(SentencePairBase):
-    slug: UUID
-    dataset_id: str
+    id: UUID = Field(default_factory=uuid4)
+    dataset_slug: str
 
+
+class SentencePairInCreate(RWModel):
+    src_sent: str
+    tgt_sent: str
 
 class SentencePairInResponse(RWModel):
     data: SentencePair
