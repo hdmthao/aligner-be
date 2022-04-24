@@ -82,12 +82,6 @@ class SentencePairService(AppService):
 
         inserted_docs = await SentencePairCRUD(self.db).bulk_insert_sentence_pairs_to_dataset(sentence_pairs_in_create, dataset)
 
-        if inserted_docs is None:
-            raise HTTPException(
-                status_code=HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Something went wrong when insert sentence pair to database"
-            )
-
         return { "imported_sentence_pairs_count": inserted_docs }
 
 
@@ -126,6 +120,6 @@ class SentencePairCRUD(AppCRUD):
             panic = list(filter(lambda x: x['code'] != 11000, e.details['writeErrors']))
 
             if len(panic) > 0:
-                return None
+                raise e
 
             return e.details['nInserted']
