@@ -9,11 +9,14 @@ from ....core.utils import create_aliased_response
 from ....models.user import User
 from ....models.sentence_pair import SentencePairInCreate, SentencePairItemInResponse, SentencePairDetailInResponse
 from ....services.sentence_pair import SentencePairService
+from ....services.dataset import DatasetService
+
 
 router = APIRouter(
     prefix="/datasets/{dataset_slug}",
     tags=["sentence_pairs"]
 )
+
 
 @router.get(
     "/sentence_pairs",
@@ -58,13 +61,18 @@ async def get_sentence_pair_from_dataset(
     return create_aliased_response(SentencePairDetailInResponse(data=sentence_pair))
 
 
-# @router.post(
-#     "/import",
-#     description="Work In Progress"
-# )
-# async def import_sentence_pairs_from_file(
-#     dataset_slug: str = Path(..., min_length=1),
-#     file: UploadFile = File(...),
-#     user: User = Depends(get_current_user()),
-#     db: AsyncIOMotorClient = Depends(get_database)
-# ):
+@router.post(
+    "/import",
+    description="Work In Progress"
+)
+async def import_sentence_pairs_from_file(
+    dataset_slug: str = Path(..., min_length=1),
+    user_file: UploadFile = File(...),
+    user: User = Depends(get_current_user()),
+    db: AsyncIOMotorClient = Depends(get_database)
+):
+    dataset = await DatasetService(db, user).get_dataset(dataset_slug)
+
+    response = await SentencePairService(db, user).import_sentence_pairs_from_file_to_dataset(user_file, dataset)
+
+    return { "data": response }

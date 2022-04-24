@@ -39,3 +39,4 @@ sentence_pairs_collection_name = "sentence_pairs"
 
 
 SECRET_KEY = os.getenv("SECRET_KEY", "local_secret_key")
+MAXIMUM_SENTENCE_PAIRS_CAN_IMPORT = int(os.getenv("MAXIMUM_SENTENCE_PAIRS_CAN_IMPORT", 5000))

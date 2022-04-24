@@ -1,15 +1,19 @@
-from typing import Optional
+from fastapi import UploadFile
+from typing import Optional, List
 from starlette.exceptions import HTTPException
-from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_422_UNPROCESSABLE_ENTITY
 from uuid import UUID
 from fastapi_pagination.ext.motor import paginate
 from fastapi_pagination.bases import AbstractPage
+from pymongo.errors import BulkWriteError
 
 from .base import AppService, AppCRUD
 from .dataset import DatasetService
+from ..core.config import MAXIMUM_SENTENCE_PAIRS_CAN_IMPORT
 from ..core.config import db_name, sentence_pairs_collection_name
 from ..models.sentence_pair import SentencePair, SentencePairInCreate, SentencePairInDB
 from ..models.dataset import Dataset
+
 
 class SentencePairService(AppService):
     async def new_sentence_pair_for_dataset(self, sentence_pair_params: SentencePairInCreate, dataset_slug: str) -> SentencePair:
@@ -43,16 +47,55 @@ class SentencePairService(AppService):
         return db_sentence_pairs
 
 
+    async def import_sentence_pairs_from_file_to_dataset(self, uploaded_file: UploadFile, dataset: Dataset):
+        file = uploaded_file.file
+        if not file:
+            raise HTTPException(
+                status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Something went wrong when reading file {uploaded_file.filename}"
+            )
+
+        sentence_pairs_in_create: List[SentencePairInCreate] = []
+        line_count = 0
+        for line in file:
+            line_count += 1
+            if line_count > MAXIMUM_SENTENCE_PAIRS_CAN_IMPORT:
+                raise HTTPException(
+                    status_code=HTTP_400_BAD_REQUEST,
+                    detail=f"Reached limit of maximum number of sentence pairs"
+                )
+            if not line:
+                raise HTTPException(
+                    status_code=HTTP_400_BAD_REQUEST,
+                    detail=f"Line cannot be empty. Line {line_count}"
+                )
+
+            raw_src_sent, raw_tgt_sent = line.decode().split("|||")
+            if not raw_src_sent.strip() or not raw_tgt_sent.strip():
+                raise HTTPException(
+                    status_code=HTTP_400_BAD_REQUEST,
+                    detail=f"Wrong line format. Line {line_count}"
+                )
+
+            sentence_pair_in_create = SentencePairInCreate(src_sent=raw_src_sent, tgt_sent=raw_tgt_sent)
+            sentence_pairs_in_create.append(sentence_pair_in_create)
+
+        inserted_docs = await SentencePairCRUD(self.db).bulk_insert_sentence_pairs_to_dataset(sentence_pairs_in_create, dataset)
+
+        if inserted_docs is None:
+            raise HTTPException(
+                status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Something went wrong when insert sentence pair to database"
+            )
+
+        return { "imported_sentence_pairs_count": inserted_docs }
+
+
 class SentencePairCRUD(AppCRUD):
     async def new_sentence_pair_for_dataset(self, sentence_pair_params: SentencePairInCreate, dataset: Dataset) -> SentencePairInDB:
-        src_sent = sentence_pair_params.src_sent.strip()
-        tgt_sent = sentence_pair_params.tgt_sent.strip()
-        src_tokenize = src_sent.split()
-        tgt_tokenize = tgt_sent.split()
         sentence_pair_doc = SentencePairInDB(
             dataset_slug=dataset.slug,
-            src_tokenize=src_tokenize, tgt_tokenize=tgt_tokenize,
-            src_sent=src_sent, tgt_sent=tgt_sent
+            **sentence_pair_params.to_base().dict()
         )
 
         await self.db[db_name][sentence_pairs_collection_name].insert_one(sentence_pair_doc.dict(), session=self.session)
@@ -72,3 +115,17 @@ class SentencePairCRUD(AppCRUD):
         base_query = {"dataset_slug": dataset.slug}
 
         return await paginate(self.db[db_name][sentence_pairs_collection_name], query_filter=base_query)
+
+
+    async def bulk_insert_sentence_pairs_to_dataset(self, sentence_pairs_in_create: List[SentencePairInCreate], dataset: Dataset):
+        sentence_pair_docs = map(lambda sentence_pair_in_create: { "dataset_slug": dataset.slug, **sentence_pair_in_create.to_base().dict() }, sentence_pairs_in_create)
+
+        try:
+            await self.db[db_name][sentence_pairs_collection_name].insert_many(sentence_pair_docs, ordered=False)
+        except BulkWriteError as e:
+            panic = list(filter(lambda x: x['code'] != 11000, e.details['writeErrors']))
+
+            if len(panic) > 0:
+                return None
+
+            return e.details['nInserted']

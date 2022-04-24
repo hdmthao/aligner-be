@@ -4,7 +4,7 @@ from starlette.status import HTTP_201_CREATED
 
 from ....database.mongo import AsyncIOMotorClient, get_database
 from ....core.utils import create_aliased_response
-from ....models.token import TokenInResponse, Token
+from ....models.token import TokenInResponse
 from ....models.account import AccountInLogin, AccountInCreate, AccountInResponse
 from ....services.account import AccountService
 
@@ -41,4 +41,4 @@ async def generate_access_token(
 ):
     account = await AccountService(db).login_and_generate_new_token(AccountInLogin(username=account_params.username, password=account_params.password))
 
-    return create_aliased_response(TokenInResponse(data=Token(access_token=account.token, token_type="bearer")))
+    return create_aliased_response(TokenInResponse(access_token=account.token, token_type="bearer"))

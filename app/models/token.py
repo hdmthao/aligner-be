@@ -5,9 +5,11 @@ class TokenPayload(RWModel):
     id: UUID
     username: str
 
+
 class Token(RWModel):
     access_token: str
     token_type: str
 
-class TokenInResponse(RWModel):
-    data: Token
+
+class TokenInResponse(Token):
+    pass

@@ -19,6 +19,7 @@ class AccountService(AppService):
                 detail="Account with this username already exists",
             )
 
+
     async def login_and_generate_new_token(self, account_params: AccountInLogin) -> Account:
         db_account = await AccountCRUD(self.db).get_account_by_username(account_params.username)
         if not db_account or not db_account.check_password(account_params.password):
@@ -49,10 +50,12 @@ class AccountCRUD(AppCRUD):
         if row:
             return AccountInDB(**row)
 
+
     async def get_account_by_username(self, username: str) -> Optional[AccountInDB]:
         row = await self.db[db_name][accounts_collection_name].find_one({"username": username})
         if row:
             return AccountInDB(**row)
+
 
     async def create_account(self, account: AccountInCreate) -> AccountInDB:
         db_account = AccountInDB(**account.dict())

@@ -5,8 +5,10 @@ from .base import AppService
 from ..core.config import SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from ..models.token import TokenPayload
 
+
 ALGORITHM = "HS256"
 access_token_jwt_subject = "access"
+
 
 class JwtService(AppService):
     def create_access_token(self, *, data: TokenPayload) -> str:
