@@ -16,8 +16,8 @@ aligner = Aligner()
 async def load_aligner():
     set_seed(1234)
 
-    config = BertConfig.from_pretrained("hdmt/aligner-en-vi")
-    tokenizer = BertTokenizer.from_pretrained("hdmt/aligner-en-vi")
+    config = BertConfig.from_pretrained("model")
+    tokenizer = BertTokenizer.from_pretrained("model")
 
     modeling.PAD_ID = tokenizer.pad_token_id
     modeling.CLS_ID = tokenizer.cls_token_id
