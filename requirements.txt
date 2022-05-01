@@ -6,6 +6,7 @@ binaryornot==0.4.4
 certifi==2021.10.8
 cffi==1.15.0
 chardet==4.0.0
+./awesome-align
 charset-normalizer==2.0.12
 click==8.1.2
 cookiecutter==1.7.3
