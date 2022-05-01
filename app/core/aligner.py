@@ -16,8 +16,9 @@ aligner = Aligner()
 async def load_aligner():
     set_seed(1234)
 
-    config = BertConfig.from_pretrained("model")
-    tokenizer = BertTokenizer.from_pretrained("model")
+    model_path = "bert-base-multilingual-cased"
+    config = BertConfig.from_pretrained(model_path)
+    tokenizer = BertTokenizer.from_pretrained(model_path)
 
     modeling.PAD_ID = tokenizer.pad_token_id
     modeling.CLS_ID = tokenizer.cls_token_id
