@@ -1,7 +1,6 @@
 anyio==3.5.0
 arrow==1.2.2
 asgiref==3.5.0
-awesome-align==0.1.7
 bcrypt==3.2.0
 binaryornot==0.4.4
 certifi==2021.10.8
