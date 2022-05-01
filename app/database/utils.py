@@ -23,3 +23,4 @@ async def close_mongo_connection():
 
 async def create_indexs():
     await db.client[db_name][sentence_pairs_collection_name].create_index([("src_sent", 1), ("tgt_sent", 1)], unique=True)
+    await db.client[db_name][sentence_pairs_collection_name].create_index("id", unique=True)

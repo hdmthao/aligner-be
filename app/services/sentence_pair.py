@@ -13,6 +13,7 @@ from ..core.config import MAXIMUM_SENTENCE_PAIRS_CAN_IMPORT
 from ..core.config import db_name, sentence_pairs_collection_name
 from ..models.sentence_pair import SentencePair, SentencePairInCreate, SentencePairInDB
 from ..models.dataset import Dataset
+from ..models.alignment import AlignmentStatus, AlignmentPair
 
 
 class SentencePairService(AppService):
@@ -112,10 +113,11 @@ class SentencePairCRUD(AppCRUD):
 
 
     async def bulk_insert_sentence_pairs_to_dataset(self, sentence_pairs_in_create: List[SentencePairInCreate], dataset: Dataset):
-        sentence_pair_docs = map(lambda sentence_pair_in_create: { "dataset_slug": dataset.slug, **sentence_pair_in_create.to_base().dict() }, sentence_pairs_in_create)
+        sentence_pair_docs = map(lambda sentence_pair_in_create: SentencePairInDB(dataset_slug=dataset.slug, **sentence_pair_in_create.to_base().dict()).dict(), sentence_pairs_in_create)
 
         try:
             await self.db[db_name][sentence_pairs_collection_name].insert_many(sentence_pair_docs, ordered=False)
+            return len(sentence_pairs_in_create)
         except BulkWriteError as e:
             panic = list(filter(lambda x: x['code'] != 11000, e.details['writeErrors']))
 
@@ -123,3 +125,13 @@ class SentencePairCRUD(AppCRUD):
                 raise e
 
             return e.details['nInserted']
+
+
+    async def update_status(self, sentence_pair: SentencePair, new_status: AlignmentStatus):
+        update_operator = {'$set': {'status': new_status}}
+        await self.db[db_name][sentence_pairs_collection_name].update_one({'id': sentence_pair.id}, update_operator, session=self.session)
+
+
+    async def update_alignments(self, sentence_pair: SentencePair, new_alignments: List[AlignmentPair]):
+        update_operator = {'$set': {'alignments': [alignment.dict() for alignment in new_alignments]}}
+        await self.db[db_name][sentence_pairs_collection_name].update_one({'id': sentence_pair.id}, update_operator, session=self.session)

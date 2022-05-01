@@ -1,22 +1,10 @@
 from typing import List
 from pydantic import Field
 from uuid import UUID, uuid4
-from enum import Enum
 
 from .rwmodel import RWModel
 from .dataset import Dataset
-
-
-class AlignmentStatus(str, Enum):
-    unaligned = 'unaligned'
-    aligning = 'aligning'
-    partially_aligned = 'partially_aligned'
-    aligned = 'aligned'
-
-
-class AlignmentPair(RWModel):
-    src: int
-    tgt: int
+from .alignment import AlignmentStatus, AlignmentPair
 
 
 class SentencePairFilterParams(RWModel):
@@ -36,6 +24,9 @@ class SentencePairBase(RWModel):
 class SentencePair(SentencePairBase):
     id: UUID
     dataset: Dataset
+
+    def is_free_to_acquire(self):
+        return self.status in [AlignmentStatus.unaligned, AlignmentStatus.aligning, AlignmentStatus.partially_aligned]
 
 
 class SentencePairInDB(SentencePairBase):
