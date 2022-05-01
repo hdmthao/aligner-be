@@ -10,7 +10,7 @@ from .database.utils import close_mongo_connection, connect_to_mongo
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 
-app = FastAPI()
+app = FastAPI(title="Aligner API")
 
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ["*"]

@@ -63,7 +63,6 @@ async def get_sentence_pair_from_dataset(
 
 @router.post(
     "/import",
-    description="Work In Progress"
 )
 async def import_sentence_pairs_from_file(
     dataset_slug: str = Path(..., min_length=1),

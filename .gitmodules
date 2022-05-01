@@ -1,3 +1,6 @@
 [submodule "motor"]
 	path = motor
 	url = https://github.com/mongodb/motor
+[submodule "awesome-align"]
+	path = awesome-align
+	url = https://github.com/neulab/awesome-align
