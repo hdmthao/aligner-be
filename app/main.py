@@ -28,7 +28,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     await connect_to_mongo()
-    await load_aligner()
+    # await load_aligner()
     
 
 app.add_event_handler("shutdown", close_mongo_connection)
