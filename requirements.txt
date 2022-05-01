@@ -29,7 +29,6 @@ jinja2-time==0.2.0
 jmespath==1.0.0
 MarkupSafe==2.1.1
 motor==3.0.0
-./awesome-align
 numpy==1.22.3
 orjson==3.6.8
 passlib==1.7.4
