@@ -1,12 +1,12 @@
-from awesome_align.run_align import word_align
+# from awesome_align.run_align import word_align
 
 
 from .base import AppService
 from .sentence_pair import SentencePairCRUD
 from ..models.sentence_pair import SentencePair
 from ..models.alignment import AlignmentStatus, AlignmentActionInfo, AlignmentInUpdate
-from ..core.aligner import Aligner
-from ..core.utils import process_raw_alignments
+# from ..core.aligner import Aligner
+# from ..core.utils import process_raw_alignments
 
 
 class AlignmentService(AppService):
@@ -32,14 +32,14 @@ class AlignmentService(AppService):
         return new_sentence_pair
 
 
-    async def auto_align_sentence_pair(self, aligner: Aligner, sentence_pair: SentencePair) -> SentencePair:
-        sentence_pairs = [[sentence_pair.src_tokenize, sentence_pair.tgt_tokenize]]
-        raw_alignments_from_model = word_align(aligner.model, aligner.tokenizer, sentence_pairs)
-
-        alignments = process_raw_alignments(raw_alignments_from_model[0])
-        
-        await SentencePairCRUD(self.db, self.current_user, self.session).update_alignments(sentence_pair, alignments)
-
-        sentence_pair.alignments = alignments
-
-        return sentence_pair
+    # async def auto_align_sentence_pair(self, aligner: Aligner, sentence_pair: SentencePair) -> SentencePair:
+    #     sentence_pairs = [[sentence_pair.src_tokenize, sentence_pair.tgt_tokenize]]
+    #     raw_alignments_from_model = word_align(aligner.model, aligner.tokenizer, sentence_pairs)
+    #
+    #     alignments = process_raw_alignments(raw_alignments_from_model[0])
+    #     
+    #     await SentencePairCRUD(self.db, self.current_user, self.session).update_alignments(sentence_pair, alignments)
+    #
+    #     sentence_pair.alignments = alignments
+    #
+    #     return sentence_pair

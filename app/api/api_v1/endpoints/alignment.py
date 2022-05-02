@@ -2,7 +2,7 @@ from fastapi import APIRouter, Path, Depends, Body
 from uuid import UUID
 
 from ....database.mongo import AsyncIOMotorClient, get_database
-from ....core.aligner import get_aligner, Aligner
+# from ....core.aligner import get_aligner, Aligner
 from ....core.jwt import get_current_user
 from ....core.utils import create_aliased_response
 from ....models.user import User
@@ -63,14 +63,14 @@ async def generate_alignment_using_nlp_model(
     sentence_pair_id: UUID = Path(...),
     user: User = Depends(get_current_user()),
     db: AsyncIOMotorClient = Depends(get_database),
-    aligner: Aligner = Depends(get_aligner)
+    # aligner: Aligner = Depends(get_aligner)
 ):
     sentence_pair = await SentencePairService(db, user).get_sentence_pair_from_dataset(sentence_pair_id=sentence_pair_id, dataset_slug=dataset_slug)
 
     async with await db.start_session() as s:
         async with s.start_transaction():
-            auto_aligned_sentence_pair = await AlignmentService(db, user, s).auto_align_sentence_pair(aligner, sentence_pair)
-            return create_aliased_response(SentencePairDetailInResponse(data=auto_aligned_sentence_pair))
+            # auto_aligned_sentence_pair = await AlignmentService(db, user, s).auto_align_sentence_pair(aligner, sentence_pair)
+            return create_aliased_response(SentencePairDetailInResponse(data=sentence_pair))
 
 
 @router.put(

@@ -5,7 +5,7 @@ from fastapi_pagination import add_pagination
 
 from .api.api_v1.api import router as api_router
 from .core.config import API_V1_STR, ALLOWED_HOSTS
-from .core.aligner import load_aligner
+# from .core.aligner import load_aligner
 from .database.utils import close_mongo_connection, connect_to_mongo
 
 
