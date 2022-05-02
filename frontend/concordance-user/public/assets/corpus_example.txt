@@ -1,0 +1,8 @@
+I am a student
+Tôi là một học_sinh
+
+Ho Chi Minh city is one of the most mordern city in Viet Nam
+Hồ_Chí_Minh là một trong những thành_phố hiện_đại nhất Việt_Nam
+
+How tall are you?
+Bạn cao bao nhiêu?
