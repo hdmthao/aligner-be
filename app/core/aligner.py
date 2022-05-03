@@ -28,7 +28,7 @@ async def load_aligner():
     if ENVIRONMENT == 'development':
         model = BertForMaskedLM.from_pretrained(model_path, config=config)
     else:
-        model = BertForMaskedLM(config=config)
+        model = None
 
     aligner.model = model
     aligner.tokenizer = tokenizer
