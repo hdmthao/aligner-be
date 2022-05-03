@@ -87,12 +87,10 @@ async def generate_alignments_for_dataset(
 ):
     dataset = await DatasetService(db, user).get_dataset(dataset_slug)
 
-    # async with await db.start_session() as s:
-    #     async with s.start_transaction():
-    #         auto_aligned_sentence_pair = await AlignmentService(db, user, s).auto_align_sentence_pair(aligner, sentence_pair)
-    #         return create_aliased_response(SentencePairDetailInResponse(data=auto_aligned_sentence_pair))
-    #
-    return create_aliased_response(DatasetDetailInResponse(data=dataset))
+    async with await db.start_session() as s:
+        async with s.start_transaction():
+            await AlignmentService(db, user, s).auto_align_dataset(aligner, dataset)
+            return { "success": True }
 
 @router.put(
     "/datasets/{dataset_slug}/sentence_pairs/{sentence_pair_id}/alignments",

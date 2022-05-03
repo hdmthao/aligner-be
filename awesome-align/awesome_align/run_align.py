@@ -19,6 +19,7 @@
 import random
 import itertools
 from tqdm import trange
+from typing import Union
 
 import numpy as np
 import torch
@@ -130,7 +131,26 @@ class LineByLineTextDataset(IterableDataset):
 #     return
 #
 #
-def word_align(model: PreTrainedModel, tokenizer: PreTrainedTokenizer, sentence_pairs):
+
+def random_align(sentence_pairs):
+    results = []
+
+    for setence_pair in sentence_pairs:
+        src_sent, tgt_sent = setence_pair
+        alignments = []
+        for _ in range(len(src_sent)):
+            src_idx = random.randint(0, len(src_sent))
+            tgt_idx = random.randint(0, len(tgt_sent))
+            alignments.append(f'{src_idx}-{tgt_idx}')
+
+        results.append(' '.join(alignments))
+
+    return results
+
+def word_align(model: Union[PreTrainedModel, None], tokenizer: PreTrainedTokenizer, sentence_pairs):
+    if model is None:
+        return random_align(sentence_pairs)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     align_layer = 8
     extraction = "softmax"
