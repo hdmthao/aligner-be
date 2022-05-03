@@ -1,4 +1,0 @@
-lang=en
-CD NN
-CD EX FW
-NN 
