@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==1.11.0+cpu
 anyio==3.5.0
 arrow==1.2.2
 asgiref==3.5.0
