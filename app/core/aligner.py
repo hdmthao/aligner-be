@@ -4,6 +4,7 @@ from awesome_align.configuration_bert import BertConfig
 from awesome_align.tokenization_bert import BertTokenizer
 from awesome_align.run_align import set_seed
 
+from .config import ENVIRONMENT
 
 class Aligner:
     model: BertForMaskedLM 
@@ -24,7 +25,10 @@ async def load_aligner():
     modeling.CLS_ID = tokenizer.cls_token_id
     modeling.SEP_ID = tokenizer.sep_token_id
 
-    model = BertForMaskedLM.from_pretrained(model_path, config=config)
+    if ENVIRONMENT == 'development':
+        model = BertForMaskedLM.from_pretrained(model_path, config=config)
+    else:
+        model = BertForMaskedLM(config=config)
 
     aligner.model = model
     aligner.tokenizer = tokenizer
