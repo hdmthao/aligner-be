@@ -5,7 +5,6 @@ setup(
     name='awesome_align',
     install_requires=[
         'tokenizers>=0.5.2',
-        'torch==1.11.0+cpu',
         'tqdm',
         'numpy',
         'boto3',
