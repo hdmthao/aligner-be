@@ -3,11 +3,12 @@ from awesome_align.modeling import BertForMaskedLM
 from awesome_align.configuration_bert import BertConfig
 from awesome_align.tokenization_bert import BertTokenizer
 from awesome_align.run_align import set_seed
+from typing import Union
 
 from .config import ENVIRONMENT
 
 class Aligner:
-    model: BertForMaskedLM 
+    model: Union[BertForMaskedLM, None]
     tokenizer: BertTokenizer 
 
 

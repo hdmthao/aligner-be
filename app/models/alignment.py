@@ -27,3 +27,8 @@ class AlignmentActionInfoInResponse(RWModel):
 
 class AlignmentInUpdate(RWModel):
     alignments: List[AlignmentPair]
+
+
+class ReleaseAlignmentStatus(str, Enum):
+    partially_aligned = 'partially_aligned'
+    aligned = 'aligned'
