@@ -51,7 +51,7 @@ class LineByLineTextDataset(IterableDataset):
 
     def process_line(self, worker_id, sentence_pair):
         
-        sent_src, sent_tgt = sentence_pair
+        sent_src, sent_tgt, sent_id = sentence_pair
         token_src, token_tgt = [self.tokenizer.tokenize(word) for word in sent_src], [self.tokenizer.tokenize(word) for word in sent_tgt]
         wid_src, wid_tgt = [self.tokenizer.convert_tokens_to_ids(x) for x in token_src], [self.tokenizer.convert_tokens_to_ids(x) for x in token_tgt]
 
@@ -65,7 +65,7 @@ class LineByLineTextDataset(IterableDataset):
         bpe2word_map_tgt = []
         for i, word_list in enumerate(token_tgt):
             bpe2word_map_tgt += [i for _ in word_list]
-        return (worker_id, ids_src[0], ids_tgt[0], bpe2word_map_src, bpe2word_map_tgt, sent_src, sent_tgt) 
+        return (worker_id, ids_src[0], ids_tgt[0], bpe2word_map_src, bpe2word_map_tgt, sent_src, sent_tgt, sent_id) 
 
     def __iter__(self):
         # if self.offsets is not None:
@@ -133,21 +133,21 @@ class LineByLineTextDataset(IterableDataset):
 #
 
 def random_align(sentence_pairs):
-    results = []
+    results = {}
 
     for setence_pair in sentence_pairs:
-        src_sent, tgt_sent = setence_pair
+        src_sent, tgt_sent, sent_id = setence_pair
         alignments = []
         for _ in range(len(src_sent)):
             src_idx = random.randint(0, len(src_sent))
             tgt_idx = random.randint(0, len(tgt_sent))
             alignments.append(f'{src_idx}-{tgt_idx}')
 
-        results.append(' '.join(alignments))
+        results[sent_id] = ' '.join(alignments)
 
     return results
 
-def word_align(model: Union[PreTrainedModel, None], tokenizer: PreTrainedTokenizer, sentence_pairs):
+def word_align(model: Union[PreTrainedModel, None], tokenizer: PreTrainedTokenizer, sentence_pairs) -> dict[str, str]:
     if model is None:
         return random_align(sentence_pairs)
 
@@ -157,10 +157,10 @@ def word_align(model: Union[PreTrainedModel, None], tokenizer: PreTrainedTokeniz
     softmax_threshold = 0.001
 
     def collate(examples):
-        worker_ids, ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, sents_src, sents_tgt = zip(*examples)
+        worker_ids, ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, sents_src, sents_tgt, sent_ids = zip(*examples)
         ids_src = pad_sequence(ids_src, batch_first=True, padding_value=tokenizer.pad_token_id)
         ids_tgt = pad_sequence(ids_tgt, batch_first=True, padding_value=tokenizer.pad_token_id)
-        return worker_ids, ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, sents_src, sents_tgt
+        return worker_ids, ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, sents_src, sents_tgt, sent_ids
 
     # offsets = find_offsets(args.data_file, args.num_workers)
     dataset = LineByLineTextDataset(tokenizer, sentence_pairs=sentence_pairs)
@@ -171,19 +171,19 @@ def word_align(model: Union[PreTrainedModel, None], tokenizer: PreTrainedTokeniz
     model.to(device)
     model.eval()
 
-    results = []
+    results = {}
     tqdm_iterator = trange(0, desc="Extracting")
 
     for batch in dataloader:
         with torch.no_grad():
-            worker_ids, ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, sents_src, sents_tgt = batch
+            worker_ids, ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, sents_src, sents_tgt, sent_ids = batch
             word_aligns_list = model.get_aligned_word(ids_src, ids_tgt, bpe2word_map_src, bpe2word_map_tgt, device, 0, 0, align_layer=align_layer, extraction=extraction, softmax_threshold=softmax_threshold, test=True, output_prob=False)
-            for _, word_aligns, _, _ in zip(worker_ids, word_aligns_list, sents_src, sents_tgt):
+            for _, word_aligns, _, _, sent_id in zip(worker_ids, word_aligns_list, sents_src, sents_tgt, sent_ids):
                 output_str = []
                 for word_align in word_aligns:
                     if word_align[0] != -1:
                         output_str.append(f'{word_align[0]}-{word_align[1]}')
-                results.append(' '.join(output_str))
+                results[sent_id] = ' '.join(output_str)
             tqdm_iterator.update(len(ids_src))
 
     return results

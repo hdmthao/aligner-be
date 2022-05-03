@@ -32,3 +32,5 @@ class AlignmentInUpdate(RWModel):
 class ReleaseAlignmentStatus(str, Enum):
     partially_aligned = 'partially_aligned'
     aligned = 'aligned'
+
+OPEN_STATUSES = [AlignmentStatus.unaligned, AlignmentStatus.aligning, AlignmentStatus.partially_aligned]

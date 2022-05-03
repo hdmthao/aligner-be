@@ -111,6 +111,22 @@ class SentencePairCRUD(AppCRUD):
 
         return await paginate(self.db[db_name][sentence_pairs_collection_name], query_filter=base_query)
 
+    async def get_sentence_pair_from_dataset_with_status(self, dataset: Dataset, statuses: List[AlignmentStatus]) -> List[SentencePairInDB]:
+        base_query = {"dataset_slug": dataset.slug}
+
+        query_statuses = []
+        for status in statuses:
+            query_statuses.append(status.value)
+        base_query["status"] = {"$in": query_statuses} # type: ignore
+
+        rows = self.db[db_name][sentence_pairs_collection_name].find(base_query)
+
+        sentence_pairs: List[SentencePairInDB] = []
+        async for row in rows:
+            sentence_pairs.append(SentencePairInDB(**row))
+
+        return sentence_pairs
+
 
     async def bulk_insert_sentence_pairs_to_dataset(self, sentence_pairs_in_create: List[SentencePairInCreate], dataset: Dataset):
         sentence_pair_docs = map(lambda sentence_pair_in_create: SentencePairInDB(dataset_slug=dataset.slug, **sentence_pair_in_create.to_base().dict()).dict(), sentence_pairs_in_create)
@@ -132,6 +148,6 @@ class SentencePairCRUD(AppCRUD):
         await self.db[db_name][sentence_pairs_collection_name].update_one({'id': sentence_pair.id}, update_operator, session=self.session)
 
 
-    async def update_alignments(self, sentence_pair: SentencePair, new_alignments: List[AlignmentPair]):
+    async def update_alignments(self, sentence_pair_id, new_alignments: List[AlignmentPair]):
         update_operator = {'$set': {'alignments': [alignment.dict() for alignment in new_alignments]}}
-        await self.db[db_name][sentence_pairs_collection_name].update_one({'id': sentence_pair.id}, update_operator, session=self.session)
+        await self.db[db_name][sentence_pairs_collection_name].update_one({'id': sentence_pair_id}, update_operator, session=self.session)

@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 from .rwmodel import RWModel
 from .dataset import Dataset
-from .alignment import AlignmentStatus, AlignmentPair
+from .alignment import AlignmentStatus, AlignmentPair, OPEN_STATUSES
 
 
 class SentencePairFilterParams(RWModel):
@@ -26,7 +26,7 @@ class SentencePair(SentencePairBase):
     dataset: Dataset
 
     def is_free_to_acquire(self):
-        return self.status in [AlignmentStatus.unaligned, AlignmentStatus.aligning, AlignmentStatus.partially_aligned]
+        return self.status in OPEN_STATUSES
 
 
 class SentencePairInDB(SentencePairBase):

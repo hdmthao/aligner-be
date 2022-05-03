@@ -56,7 +56,7 @@ async def get_dataset(
     status_code=HTTP_201_CREATED
 )
 async def create_new_dataset(
-    dataset_params: DatasetInCreate = Body(..., embed=True),
+    dataset_params: DatasetInCreate = Body(..., embed=True, alias="dataset"),
     user: User = Depends(get_current_user()),
     db: AsyncIOMotorClient = Depends(get_database)
 ):

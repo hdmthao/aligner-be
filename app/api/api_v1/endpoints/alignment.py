@@ -51,7 +51,7 @@ async def release_sentence_pair_with_alignment_status(
 
     async with await db.start_session() as s:
         async with s.start_transaction():
-            alignment_action_info = await AlignmentService(db, user, s).mark_sentence_pair_as_aligned(sentence_pair)
+            alignment_action_info = await AlignmentService(db, user, s).release_sentence_pair_with_alignment_status(sentence_pair, alignment_status)
 
             return create_aliased_response(AlignmentActionInfoInResponse(data=alignment_action_info))
 
@@ -89,8 +89,8 @@ async def generate_alignments_for_dataset(
 
     async with await db.start_session() as s:
         async with s.start_transaction():
-            await AlignmentService(db, user, s).auto_align_dataset(aligner, dataset)
-            return { "success": True }
+            alignment_action_info  = await AlignmentService(db, user, s).auto_align_dataset(aligner, dataset)
+            return create_aliased_response(AlignmentActionInfoInResponse(data=alignment_action_info))
 
 @router.put(
     "/datasets/{dataset_slug}/sentence_pairs/{sentence_pair_id}/alignments",
@@ -99,7 +99,7 @@ async def generate_alignments_for_dataset(
 async def update_alignments_of_sentence_pair(
     dataset_slug: str = Path(..., min_length=1),
     sentence_pair_id: UUID = Path(...),
-    alignments_param: AlignmentInUpdate = Body(..., embed=True, alias="alignments"),
+    alignments_param: AlignmentInUpdate = Body(..., embed=False, alias="alignments"),
     user: User = Depends(get_current_user()),
     db: AsyncIOMotorClient = Depends(get_database)
 ):

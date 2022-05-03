@@ -66,7 +66,7 @@ async def get_sentence_pair_from_dataset(
 )
 async def import_sentence_pairs_from_file(
     dataset_slug: str = Path(..., min_length=1),
-    user_file: UploadFile = File(...),
+    user_file: UploadFile = File(..., alias="data_file"),
     user: User = Depends(get_current_user()),
     db: AsyncIOMotorClient = Depends(get_database)
 ):
