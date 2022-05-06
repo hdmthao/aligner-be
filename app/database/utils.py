@@ -22,5 +22,5 @@ async def close_mongo_connection():
     logger.info("Database connection closed!")
 
 async def create_indexs():
-    await db.client[db_name][sentence_pairs_collection_name].create_index([("src_sent_1_tgt_sent_1", 1), ("src_sent", 1), ("tgt_sent", 1)], unique=True)
+    await db.client[db_name][sentence_pairs_collection_name].create_index([("dataset_slug", 1), ("src_sent", 1), ("tgt_sent", 1)], unique=True)
     await db.client[db_name][sentence_pairs_collection_name].create_index("id", unique=True)
